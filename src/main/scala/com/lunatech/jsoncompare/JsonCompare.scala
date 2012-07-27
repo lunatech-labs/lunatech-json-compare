@@ -54,8 +54,13 @@ object JsonCompare {
         }
         case o: JsObject => flattenLeft(o.fields.map(pair => checkSubTree(reference \ pair._1, pair._2, addSegment(path, pair._1))))
         case a: JsArray => {
-          if (a.value.size != reference.asInstanceOf[JsArray].value.size) Left(List(Difference(path, "array size differs"))) else
+          val expected = reference.asInstanceOf[JsArray].value
+          val found = a.value
+          if (expected.size != found.size) {
+            Left(List(Difference(path, "array size differs", Some(expected.size.toString), Some(found.size.toString))))
+          } else {
             flattenLeft(a.value.zipWithIndex.map(pair => checkSubTree(reference(pair._2), pair._1, addIndex(path, pair._2))))
+          }
         }
         case u: JsUndefined => Right()
       }
